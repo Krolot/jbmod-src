@@ -15,6 +15,7 @@
 printl( "Initializing Sandbox Game Mode..." );
 SetGameDescription( "JBMod Sandbox" );
 Convars.SetValue( "sv_infinite_aux_power", 1 );
+Convars.SetValue( "jbmod_impulse_enabled", 1);
 
 function OnPlayerSpawn( player )
 {
