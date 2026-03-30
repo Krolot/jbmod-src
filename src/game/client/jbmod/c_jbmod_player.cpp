@@ -217,6 +217,8 @@ void C_JBMod_Player::Initialize( void )
 CStudioHdr *C_JBMod_Player::OnNewModel( void )
 {
 	CStudioHdr *hdr = BaseClass::OnNewModel();
+	if ( !hdr )
+		return NULL;
 	
 	Initialize( );
 
@@ -789,8 +791,6 @@ void C_JBMod_Player::HandleSpeedChanges( CMoveData *mv )
 {
 	int nChangedButtons = mv->m_nButtons ^ mv->m_nOldButtons;
 
-	bool bJustPressedSpeed = !!( nChangedButtons & IN_SPEED );
-
 	const bool bWantSprint = ( CanSprint() && IsSuitEquipped() && ( mv->m_nButtons & IN_SPEED ) );
 	const bool bWantsToChangeSprinting = ( m_HL2Local.m_bNewSprinting != bWantSprint ) && ( nChangedButtons & IN_SPEED ) != 0;
 
@@ -799,16 +799,7 @@ void C_JBMod_Player::HandleSpeedChanges( CMoveData *mv )
 	{
 		if ( bWantSprint )
 		{
-			if ( m_HL2Local.m_flSuitPower < 10.0f )
-			{
-				if ( bJustPressedSpeed )
-				{
-					CPASAttenuationFilter filter( this );
-					filter.UsePredictionRules();
-					EmitSound( filter, entindex(), "HL2Player.SprintNoPower" );
-				}
-			}
-			else
+			if ( m_HL2Local.m_flSuitPower >= 10.0f )
 			{
 				bSprinting = true;
 			}
@@ -844,12 +835,6 @@ void C_JBMod_Player::HandleSpeedChanges( CMoveData *mv )
 
 	if ( bSprinting )
 	{
-		if ( bJustPressedSpeed )
-		{
-			CPASAttenuationFilter filter( this );
-			filter.UsePredictionRules();
-			EmitSound( filter, entindex(), "HL2Player.SprintStart" );
-		}
 		mv->m_flClientMaxSpeed = HL2_SPRINT_SPEED;
 	}
 	else if ( bWantWalking )
@@ -906,6 +891,7 @@ void C_JBMod_Player::ItemPreFrame( void )
 	{
 		//FIXME: Held weapons like the grenade get sad when this happens
 		m_nButtons &= ~(IN_ATTACK|IN_ATTACK2);
+		m_afButtonPressed &= ~(IN_ATTACK|IN_ATTACK2);
 	}
 
 	BaseClass::ItemPreFrame();
